@@ -151,6 +151,7 @@ xcodebuild -project src/ios/Minis.xcodeproj -scheme Minis \
 | Android SDK | **compileSdk 36**, targetSdk 35, **minSdk 26** |
 | Android NDK | **r28+** — set `$ANDROID_NDK_HOME`, or install via Android Studio |
 | CMake | 3.22.1 (install through the SDK Manager) |
+| Go + gomobile | Only for `build_rclone_android.sh`: `go install golang.org/x/mobile/cmd/gomobile@latest && gomobile init` |
 | Shell tools | `curl`, `tar`, `make`, `awk`, `sed` |
 
 Gradle itself comes from the wrapper (Gradle 8.11.1, AGP 8.7.3, Kotlin 2.1.0) —
@@ -164,6 +165,8 @@ image.
 ```sh
 ./deps/build_proot.sh              # → assets/proot-aarch64, jniLibs/arm64-v8a/*.so
 ./scripts/prepare_android_sandbox.sh   # → assets/alpine-minirootfs.tar.gz
+./deps/build_rclone_android.sh     # → deps/build/rclone/rclone.aar
+cp deps/build/rclone/rclone.aar src/android/app/libs/
 ```
 
 - **`build_proot.sh`** cross-compiles a static `libtalloc` and the
@@ -187,6 +190,11 @@ image.
   checksums to match someone else's build.
 - **`prepare_android_sandbox.sh`** downloads the Alpine aarch64 minirootfs into
   `assets/`.
+- **`build_rclone_android.sh`** builds the backup feature's remote backends as
+  `rclone.aar` via gomobile (needs `go` + `gomobile`, and `ANDROID_NDK_HOME`
+  or `ANDROID_HOME`). Gradle resolves it from the `app/libs` flatDir, so copy
+  the artifact there — `checkDebugAarMetadata` fails with "Could not find
+  :rclone:" when it is missing.
 
 Both write into `src/android/app/src/main/`, and their outputs are gitignored —
 they are build artifacts, so rerun the scripts rather than committing them.
